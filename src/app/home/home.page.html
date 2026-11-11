@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>
-      Blank
+      Hola FCT!!
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -9,12 +9,76 @@
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
+      <ion-title size="large">Hola FCT!!</ion-title>
     </ion-toolbar>
   </ion-header>
 
   <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+    
+    <!-- TARJETA DE IONIC (Píldora 1) -->
+    <ion-card class="ion-margin">
+      <ion-card-header>
+        <ion-card-subtitle>Panel de Control FCT</ion-card-subtitle>
+        <ion-card-title>{{ mensaje }}</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <p>Mi objetivo es alcanzar <strong>{{ horasFCT }} horas</strong> de FCT.</p>
+        <p>Has pulsado el botón <strong>{{ contador }}</strong> veces.</p>
+        
+        <div *ngIf="mensajeGuardado">
+          <hr>
+          <p>Último mensaje guardado:</p>
+          <p><strong>{{ mensajeGuardado }}</strong></p>
+        </div>
+      </ion-card-content>
+    </ion-card>
+<!-- LISTA DINÁMICA (Con borrado en tiempo real) -->
+  <ion-card class="ion-margin">
+  <ion-card-header>
+    <ion-card-subtitle>Progreso de Tareas en la Nube</ion-card-subtitle>
+    <ion-card-title>Registro FCT</ion-card-title>
+  </ion-card-header>
+  
+  <ion-card-content>
+    <ion-list>
+      <ion-item *ngFor="let tarea of listaTareas">
+        <ion-label>
+          <h2>{{ tarea.titulo }}</h2>
+          <p>Inversión estimada: {{ tarea.horas }} horas</p>
+        </ion-label>
+        
+        <!-- Botón con icono de borrado -->
+        <ion-button slot="end" fill="clear" color="danger" (click)="eliminarTarea(tarea.id)">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </ion-list>
+  </ion-card-content>
+</ion-card>
+    <!-- INPUT DE ENLACE EN TIEMPO REAL -->
+    <ion-item class="ion-margin-horizontal">
+      <ion-input 
+        label="Escribe algo..." 
+        labelPlacement="floating" 
+        [(ngModel)]="valorInput"
+        name="valorInput" 
+        placeholder="Escribe aqui">
+      </ion-input>
+    </ion-item>
+
+    <p>Estás escribiendo: <strong>{{ valorInput }}</strong></p>
+
+    <!-- BOTÓN DE ACCIÓN -->
+    <ion-button (click)="cambiarMensaje()" expand="block" class="ion-margin">
+      Guardar y Actualizar
+    </ion-button>
+
   </div>
+  <ion-toast
+    [isOpen]="isToastOpen"
+    [message]="toastMessage"
+    [duration]="2000"
+    (didDismiss)="setToastOpen(false)">
+  </ion-toast>
 </ion-content>
