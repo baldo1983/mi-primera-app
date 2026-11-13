@@ -66,6 +66,17 @@
         placeholder="Escribe aqui">
       </ion-input>
     </ion-item>
+    <!-- NUEVO: INPUT PARA LAS HORAS -->
+    <ion-item class="ion-margin-horizontal">
+      <ion-input 
+        type="number"
+        label="Horas dedicadas" 
+        labelPlacement="floating" 
+        [(ngModel)]="valorHoras"
+        name="valorHoras" 
+        placeholder="8">
+      </ion-input>
+    </ion-item>
 
     <p>Estás escribiendo: <strong>{{ valorInput }}</strong></p>
 

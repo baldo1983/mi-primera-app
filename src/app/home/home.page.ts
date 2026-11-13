@@ -2,7 +2,7 @@
 // 1. IMPORTACIONES DE ANGULAR Y LIBRERÍAS
 // ==========================================
 // Importamos las herramientas básicas que necesita el componente y NgZone para forzar el refresco de pantalla.
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, OnDestroy, NgZone } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, OnDestroy, NgZone , ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -36,7 +36,8 @@ import { db } from '../service/firebase.config';
     IonItem, IonInput, IonButton, IonList, IonLabel, IonToast, IonIcon
   ],
   standalone: true, // Indicamos que es un componente moderno independiente
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  changeDetection: ChangeDetectionStrategy.OnPush // <--- Añadimos esto para control estricto de la vista
 })
 export class HomePage implements OnInit, OnDestroy {
   
@@ -48,6 +49,7 @@ export class HomePage implements OnInit, OnDestroy {
   public contador: number = 0;
   public mensajeGuardado: string = "";
   public valorInput: string = "";
+  public valorHoras: number = 8; // Nueva variable para las horas (por defecto 8)
 
   // Referencia directa al icono de la papelera para asegurarnos de que se pinta bien
   public trashIcon = trashOutline;
@@ -65,7 +67,7 @@ export class HomePage implements OnInit, OnDestroy {
   // ==========================================
   // 4. CONSTRUCTOR (INICIALIZACIÓN DE ICONOS Y ZONA)
   // ==========================================
-  constructor(private zone: NgZone) {
+  constructor(private zone: NgZone, private cdr: ChangeDetectorRef) {
     // Registramos el icono de la papelera en Ionic al arrancar
     addIcons({ trashOutline });
   }
@@ -91,7 +93,7 @@ export class HomePage implements OnInit, OnDestroy {
   // ==========================================
   // 7. LÓGICA DE TIEMPO REAL (ONSNAPSHOT)
   // ==========================================
-  escucharTareasEnTiempoReal() {
+ escucharTareasEnTiempoReal() {
     const tareasRef = collection(db, 'tareas');
     this.unsubscribeFirestore = onSnapshot(tareasRef, (snapshot) => {
       this.zone.run(() => {
@@ -101,34 +103,33 @@ export class HomePage implements OnInit, OnDestroy {
           horas: docSnapshot.data()['horas']
         }));
 
-        // --- AÑADE ESTO AQUÍ ---
-        // Sumamos las horas de todas las tareas de la lista automáticamente
         this.horasFCT = this.listaTareas.reduce((total, tarea) => total + (Number(tarea.horas) || 0), 0);
-        // ------------------------
-
         console.log("Lista actualizada en tiempo real:", this.listaTareas);
+        
+        // Forzamos la actualización completa marcando el componente y detectando cambios al instante
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       });
     });
   }
-
   // ==========================================
   // 8. ACCIÓN: GUARDAR NUEVA TAREA EN FIREBASE
   // ==========================================
-  async cambiarMensaje() {
-    // Comprobamos que el input no esté vacío
+async cambiarMensaje() {
     if (this.valorInput.trim() !== "") {
       try {
-        // Enviamos un nuevo documento a la colección 'tareas' en la nube
         await addDoc(collection(db, 'tareas'), {
           titulo: this.valorInput,
-          horas: 8
+          horas: Number(this.valorHoras) || 0 // Usamos el input de horas de forma segura
         });
 
-        // Forzamos la actualización visual del Toast y limpiamos el input
         this.zone.run(() => {
           this.toastMessage = "¡Tarea guardada en Firebase!";
           this.isToastOpen = true;
           this.valorInput = ""; 
+          this.valorHoras = 8; // Reseteamos a 8 por defecto si quieres
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
         });
       } catch (error) {
         console.error("Error al guardar:", error);
